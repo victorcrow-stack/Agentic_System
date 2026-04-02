@@ -119,13 +119,26 @@ h1{font-size:23px;font-weight:700;line-height:1.25}
     <div class="card" style="padding:16px 18px"><div class="pillar" style="border-color:var(--accent)"><div class="num txt-accent">01</div><div class="title">Sistema basado en Capabilities | Human to IA</div><div class="desc">Cada human capability es una AI Tool para el Roadmap.</div></div></div>
     <div class="card" style="padding:16px 18px"><div class="pillar" style="border-color:var(--cyan)"><div class="num txt-cyan">02</div><div class="title">Orquestación del Workforce | First AI, then Human</div><div class="desc">El Orchestra prioriza por policies y balance de carga: si hay AI Tool, la ejecuta; si no, genera ticket al equipo humano (Front o Back).</div></div></div>
     <div class="card" style="padding:16px 18px"><div class="pillar" style="border-color:var(--green)"><div class="num txt-green">03</div><div class="title">Roadmap AI Agent Tools | More AI Tools, Leaner Teams</div><div class="desc">Los datos del Orchestra determinan qué capacidad transformar en AI por demanda alta y el equipo Producto determina viabilidad de transformación en AI Agent Tool.</div></div></div>
-    <div class="card" style="padding:16px 18px"><div class="pillar" style="border-color:var(--amber)"><div class="num txt-amber">04</div><div class="title">Simplificar Estructura → 2 Ops Teams | Front y Back</div><div class="desc">De múltiples equipos a 2 equipos enfocados en atender tickets por tipologías, donde el humano es polivalente y eficaz.</div></div></div>
+    <div class="card" style="padding:16px 18px"><div class="pillar" style="border-color:var(--amber)"><div class="num txt-amber">04</div><div class="title">Simplificar Estructura → 2 Teams | Front y Back</div><div class="desc">De múltiples equipos a 2 equipos enfocados en atender tickets por tipologías, donde el humano es polivalente y eficaz.</div></div></div>
   </div>
   <div class="card" style="padding:16px 18px;margin-bottom:16px"><div class="pillar" style="border-color:var(--rose)"><div class="num txt-rose">05</div><div class="title">Proteger KD Revenue | Mientras se construye ORBIDI 2.0</div><div class="desc">Objetivo Memorias intocable, la transformación no debe sacrificar el negocio actual.</div></div></div>
   <div class="card card-accent">
     <div style="font-size:10.5px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px">Ciclo Lean Operations</div>
-    <div class="cycle-flow">
-      <span class="cycle-step">Inputs (Cliente · Legal · Interno · Red.es)</span><span class="cycle-arr">→</span><span class="cycle-step">Orchestra genera Tickets</span><span class="cycle-arr">→</span><span class="cycle-step">AI Tool ejecuta</span><span class="cycle-arr">→</span><span class="cycle-step">Si no: Human (Front/Back)</span><span class="cycle-arr">→</span><span class="cycle-step">Nueva AI Tool</span><span class="cycle-arr">→</span><span class="cycle-step" style="background:var(--greenSoft);color:var(--green)">Headcount adjustment ↻</span>
+    <div style="position:relative;padding:20px 0 10px">
+      <div style="display:flex;align-items:center;justify-content:center;gap:5px;flex-wrap:wrap;margin-bottom:12px">
+        <span class="cycle-step" id="cycle-start">Inputs Internos y Externos</span><span class="cycle-arr">→</span>
+        <span class="cycle-step">Orchestra genera Tickets</span><span class="cycle-arr">→</span>
+        <span class="cycle-step">AI Tool ejecuta</span>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:center;gap:5px;flex-wrap:wrap">
+        <span class="cycle-step">Si no: Human (Front/Back)</span><span class="cycle-arr">→</span>
+        <span class="cycle-step">Nueva AI Tool</span><span class="cycle-arr">→</span>
+        <span class="cycle-step">Headcount adjustment</span>
+      </div>
+      <div style="display:flex;justify-content:center;margin-top:10px">
+        <svg width="200" height="30" viewBox="0 0 200 30"><path d="M160 5 L160 20 Q160 25 155 25 L45 25 Q40 25 40 20 L40 12" fill="none" stroke="#6366f1" stroke-width="1.5" stroke-dasharray="4 3"/><polygon points="36,16 40,8 44,16" fill="#6366f1"/></svg>
+      </div>
+      <div style="text-align:center;font-size:10px;color:var(--dim);margin-top:2px">↑ El ciclo se repite — cada iteración aumenta AI y reduce dependencia humana</div>
     </div>
   </div>
 </div>
