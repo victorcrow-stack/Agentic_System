@@ -1,538 +1,349 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Inter',sans-serif;background:#08080d;color:#e2e2e8;line-height:1.6;overflow-x:hidden}
-:root{--accent:#6366f1;--accentSoft:rgba(99,102,241,0.12);--green:#22c55e;--greenSoft:rgba(34,197,94,0.1);--amber:#f59e0b;--amberSoft:rgba(245,158,11,0.1);--rose:#f43f5e;--roseSoft:rgba(244,63,94,0.1);--cyan:#06b6d4;--cyanSoft:rgba(6,182,212,0.1);--card:#111118;--border:#1e1e2d;--muted:#8888a0;--dim:#555568}
+import { useState } from "react";
 
-.header{padding:28px 24px 0;border-bottom:1px solid var(--border)}
-.header-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
-.tag{font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
-h1{font-size:21px;font-weight:700;line-height:1.25}
-.conf{font-size:10px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--amber);background:var(--amberSoft);padding:3px 8px;border-radius:4px;display:inline-block;margin-top:4px}
-.date{font-size:11px;color:var(--muted);margin-bottom:4px;text-align:right}
+const C = {
+  bg:"#08080d",card:"#111118",border:"#1e1e2d",accent:"#6366f1",accentS:"rgba(99,102,241,0.12)",
+  green:"#22c55e",greenS:"rgba(34,197,94,0.1)",amber:"#f59e0b",amberS:"rgba(245,158,11,0.1)",
+  rose:"#f43f5e",roseS:"rgba(244,63,94,0.1)",cyan:"#06b6d4",cyanS:"rgba(6,182,212,0.1)",
+  text:"#e2e2e8",muted:"#8888a0",dim:"#555568"
+};
 
-.tabs{display:flex;gap:0;overflow-x:auto;-webkit-overflow-scrolling:touch}
-.tabs button{background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);font-size:11.5px;font-weight:500;padding:10px 13px;cursor:pointer;white-space:nowrap;transition:all 0.15s;font-family:inherit}
-.tabs button:hover{color:#ccc}
-.tabs button.active{color:#e2e2e8;border-bottom-color:var(--accent)}
+const Badge = ({color,bg,children}) => (
+  <span style={{fontSize:9.5,fontWeight:600,letterSpacing:"0.06em",textTransform:"uppercase",color,background:bg,padding:"3px 8px",borderRadius:4,display:"inline-block"}}>{children}</span>
+);
 
-.content{padding:24px 24px 60px;max-width:780px;margin:0 auto}
-.tab-panel{display:none}
-.tab-panel.active{display:block}
+const Card = ({children,accent,borderLeft,style}) => (
+  <div style={{background:accent?"linear-gradient(135deg,rgba(99,102,241,0.07),rgba(6,182,212,0.05))":C.card,border:`1px solid ${accent?"rgba(99,102,241,0.2)":C.border}`,borderLeft:borderLeft||undefined,borderRadius:11,padding:"18px 20px",marginBottom:14,...style}}>{children}</div>
+);
 
-.section-title{margin-bottom:18px}
-.section-title h2{font-size:17px;font-weight:600;display:flex;align-items:center;gap:8px}
-.section-title h2 span{font-size:16px}
-.section-title p{font-size:12.5px;color:var(--muted);margin-top:3px;padding-left:24px}
+const STitle = ({icon,t,sub}) => (
+  <div style={{marginBottom:18}}>
+    <h2 style={{fontSize:17,fontWeight:600,display:"flex",alignItems:"center",gap:8,margin:0,color:C.text}}><span style={{fontSize:16}}>{icon}</span>{t}</h2>
+    {sub&&<p style={{fontSize:12.5,color:C.muted,marginTop:3,paddingLeft:24}}>{sub}</p>}
+  </div>
+);
 
-.card{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:18px 20px;margin-bottom:14px}
-.card-accent{background:linear-gradient(135deg,rgba(99,102,241,0.07),rgba(6,182,212,0.05));border-color:rgba(99,102,241,0.2)}
-
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-@media(max-width:600px){.grid2{grid-template-columns:1fr}}
-
-.badge{font-size:9.5px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;padding:3px 8px;border-radius:4px;display:inline-block}
-
-.kpis{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px}
-.kpi{text-align:center;flex:1;min-width:90px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 8px}
-.kpi .val{font-size:26px;font-weight:700;line-height:1}
-.kpi .lbl{font-size:10px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:0.04em}
-
-.phase{background:var(--card);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;overflow:hidden;cursor:pointer}
-.phase-header{padding:13px 16px;display:flex;justify-content:space-between;align-items:center}
-.phase-left{display:flex;align-items:center;gap:10px}
-.phase-arrow{font-size:11px;color:var(--dim);transition:transform 0.2s}
-.phase-arrow.open{transform:rotate(180deg)}
-.phase-body{display:none;padding:0 16px 14px;border-top:1px solid var(--border);margin-top:0}
-.phase-body.open{display:block;padding-top:12px}
-.phase-item{display:flex;gap:8px;margin-bottom:7px;font-size:12.5px;color:var(--muted);line-height:1.55}
-.phase-item .dot{flex-shrink:0;margin-top:2px}
-
-.pillar{border-left:3px solid;padding-left:14px;margin-bottom:0}
-.pillar .num{font-size:17px;font-weight:700;line-height:1}
-.pillar .title{font-size:12.5px;font-weight:600;color:#e2e2e8;margin-top:2px}
-.pillar .desc{font-size:11.5px;color:var(--muted);margin-top:4px;line-height:1.55}
-
-.map-row{display:grid;grid-template-columns:1.2fr 0.3fr 1.2fr 1.6fr;gap:8px;padding:9px 0;border-bottom:1px solid var(--border);font-size:12px;align-items:center}
-.map-row:last-child{border-bottom:none}
-.map-head{font-size:9.5px;font-weight:600;color:var(--dim);text-transform:uppercase;padding-bottom:6px;border-bottom:1px solid var(--border);margin-bottom:2px}
-
-.table-grid{display:grid;font-size:11.5px}
-.table-grid .cell{padding:9px 8px;border-bottom:1px solid var(--border)}
-.table-grid .head{font-size:9.5px;font-weight:600;color:var(--dim);text-transform:uppercase}
-
-.risk-row{display:grid;grid-template-columns:1.5fr 0.5fr 0.5fr 2fr;gap:8px;padding:10px 0;border-bottom:1px solid var(--border);font-size:12px;align-items:start}
-
-.decision{border-left:3px solid;padding:16px 18px;background:var(--card);border-radius:0 10px 10px 0;margin-bottom:12px;border-top:1px solid var(--border);border-right:1px solid var(--border);border-bottom:1px solid var(--border)}
-.decision .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px}
-.decision .num{font-size:19px;font-weight:700}
-.decision .dtitle{font-size:13.5px;font-weight:600}
-.decision .rec{font-size:12px;color:var(--muted);line-height:1.6}
-
-.milestone{display:flex;gap:12px;padding:6px 0;border-bottom:1px solid rgba(99,102,241,0.08);font-size:12px;align-items:center}
-.milestone:last-child{border-bottom:none}
-.milestone .md{color:var(--accent);font-weight:600;min-width:48px;font-size:11px}
-
-.cycle-flow{display:flex;align-items:center;gap:5px;flex-wrap:wrap;justify-content:center;padding:10px 0}
-.cycle-step{background:var(--accentSoft);color:var(--accent);padding:4px 10px;border-radius:6px;font-weight:500;font-size:10.5px}
-.cycle-arr{color:var(--dim);font-size:11px}
-
-.highlight{color:#e2e2e8;font-weight:600}
-.txt-rose{color:var(--rose)}
-.txt-green{color:var(--green)}
-.txt-amber{color:var(--amber)}
-.txt-cyan{color:var(--cyan)}
-.txt-accent{color:var(--accent)}
-.txt-muted{color:var(--muted)}
-.txt-dim{color:var(--dim)}
-
-.compare-label{font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:6px}
-.compare-text{font-size:12px;color:var(--muted);line-height:1.65}
-
-.source{font-size:11px;color:var(--dim);margin-top:8px;font-style:italic}
-</style>
-</head>
-<body>
-
-<div class="header">
-  <div class="header-top">
-    <div>
-      <div class="tag">Orbidi · Board Briefing</div>
-      <h1>De Modelo Funcional a<br>Organización Agéntica AI-First</h1>
+const Phase = ({phase,title,date,color,colorS,items}) => {
+  const [open,setOpen]=useState(false);
+  return (
+    <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:10,marginBottom:8,overflow:"hidden",borderLeft:`3px solid ${color}`}}>
+      <div onClick={()=>setOpen(!open)} style={{padding:"13px 16px",display:"flex",justifyContent:"space-between",alignItems:"center",cursor:"pointer"}}>
+        <div style={{display:"flex",alignItems:"center",gap:10}}>
+          <Badge color={color} bg={colorS}>{phase}</Badge>
+          <span style={{fontSize:13,fontWeight:500,color:C.text}}>{title}</span>
+        </div>
+        <div style={{display:"flex",alignItems:"center",gap:10}}>
+          <span style={{fontSize:11,color:C.muted}}>{date}</span>
+          <span style={{fontSize:11,color:C.dim,transform:open?"rotate(180deg)":"none",transition:"transform 0.2s",display:"inline-block"}}>▼</span>
+        </div>
+      </div>
+      {open&&(
+        <div style={{padding:"12px 16px 14px",borderTop:`1px solid ${C.border}`}}>
+          {items.map((it,i)=>(
+            <div key={i} style={{display:"flex",gap:8,marginBottom:7,fontSize:12.5,color:C.muted,lineHeight:1.55}}>
+              <span style={{color,flexShrink:0}}>→</span><span dangerouslySetInnerHTML={{__html:it}}/>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
-    <div>
-      <div class="date">Abril 2026</div>
-      <div class="conf">Confidencial</div>
-    </div>
-  </div>
-  <div class="tabs" id="tabs">
-    <button class="active" data-tab="vision">Visión Estratégica</button>
-    <button data-tab="roadmap">Roadmap</button>
-    <button data-tab="mapping">Mapping AS IS → TO BE</button>
-    <button data-tab="financial">Impacto</button>
-    <button data-tab="risks">Riesgos</button>
-    <button data-tab="decisions">Decisiones</button>
-  </div>
-</div>
+  );
+};
 
-<div class="content">
+const tabs=[
+  {id:"vision",label:"Visión Estratégica"},
+  {id:"roadmap",label:"Roadmap"},
+  {id:"mapping",label:"Mapping AS IS → TO BE"},
+  {id:"financial",label:"Impacto"},
+  {id:"risks",label:"Riesgos"},
+  {id:"decisions",label:"Decisiones"},
+];
 
-<!-- ═══ VISION ═══ -->
-<div class="tab-panel active" id="panel-vision">
-  <div class="section-title">
-    <h2><span>◆</span> El Cambio de Paradigma</h2>
-    <p>No es una reestructuración organizacional — es un nuevo sistema operativo para la empresa</p>
-  </div>
+export default function App(){
+  const [tab,setTab]=useState("vision");
 
-  <div class="card card-accent" style="margin-bottom:20px">
-    <p style="font-size:13.5px;line-height:1.7">
-      Orbidi transiciona de un <span class="highlight txt-rose">modelo funcional por silos</span> donde cada equipo decide qué hacer, a un <span class="highlight txt-green">modelo agéntico AI-first</span> donde un sistema central asigna, prioriza y mide todo el trabajo — y progresivamente transfiere capacidades humanas a AI Agent Tools.
-    </p>
-    <p class="source">Alineado con: McKinsey "The Agentic Organization" (2025) · BCG "Enterprise as Code" (2025) · WEF "AI-First Operating Models" (2026)</p>
-  </div>
+  return (
+    <div style={{background:C.bg,minHeight:"100vh",color:C.text,fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"}}>
+      {/* HEADER */}
+      <div style={{padding:"28px 24px 0",borderBottom:`1px solid ${C.border}`}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:16}}>
+          <div>
+            <div style={{fontSize:10,fontWeight:600,letterSpacing:"0.1em",textTransform:"uppercase",color:C.accent,marginBottom:6}}>Orbidi · Board Briefing</div>
+            <h1 style={{fontSize:21,fontWeight:700,margin:0,lineHeight:1.25}}>De Modelo Funcional a<br/>Organización Agéntica AI-First</h1>
+          </div>
+          <div style={{textAlign:"right"}}>
+            <div style={{fontSize:11,color:C.muted,marginBottom:4}}>Abril 2026</div>
+            <Badge color={C.amber} bg={C.amberS}>Confidencial</Badge>
+          </div>
+        </div>
+        <div style={{display:"flex",gap:0,overflowX:"auto"}}>
+          {tabs.map(t=>(
+            <button key={t.id} onClick={()=>setTab(t.id)} style={{background:"none",border:"none",borderBottom:tab===t.id?`2px solid ${C.accent}`:"2px solid transparent",color:tab===t.id?C.text:C.muted,fontSize:11.5,fontWeight:500,padding:"10px 13px",cursor:"pointer",whiteSpace:"nowrap",fontFamily:"inherit"}}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </div>
 
-  <div class="grid2" style="margin-bottom:22px">
-    <div class="card">
-      <div class="compare-label txt-rose">❌ Hoy: Modelo Funcional</div>
-      <div class="compare-text">8 equipos en silos deciden sus propias prioridades. El trabajo se asigna por managers y canales informales (emails, chats, llamadas). No hay datos sobre volumen, tiempo ni capacidad real por tipo de tarea. La IA es una herramienta puntual — un chatbot en Intercom.</div>
-    </div>
-    <div class="card">
-      <div class="compare-label txt-green">✓ Objetivo: Modelo Agéntico</div>
-      <div class="compare-text">Un AI Orchestra asigna todo el trabajo como tickets priorizados por políticas. Los equipos son pools de capacidad que ejecutan en orden. El sistema mide cada tarea. Esos datos determinan qué capacidades humanas se convierten en la próxima AI Agent Tool. Progresivamente, la IA asume más — los humanos se reposicionan o se desescalan.</div>
-    </div>
-  </div>
+      <div style={{padding:"24px 24px 60px",maxWidth:780,margin:"0 auto"}}>
 
-  <div class="section-title">
-    <h2><span>◇</span> Los 5 Pilares del Nuevo Modelo</h2>
-  </div>
+      {/* ═══ VISION ═══ */}
+      {tab==="vision"&&(<div>
+        <STitle icon="◆" t="El Cambio de Paradigma" sub="No es una reestructuración — es un nuevo sistema operativo para la empresa"/>
+        <Card accent>
+          <p style={{fontSize:13.5,lineHeight:1.7,margin:0}}>
+            Orbidi transiciona de un <strong style={{color:C.rose}}>modelo funcional por silos</strong> donde cada equipo decide qué hacer, a un <strong style={{color:C.green}}>modelo agéntico AI-first</strong> donde un sistema central asigna, prioriza y mide todo el trabajo — y progresivamente transfiere capacidades humanas a AI Agent Tools.
+          </p>
+          <p style={{fontSize:11,color:C.dim,marginTop:8,marginBottom:0,fontStyle:"italic"}}>Alineado con: McKinsey "The Agentic Organization" (2025) · BCG "Enterprise as Code" (2025) · WEF "AI-First Operating Models" (2026)</p>
+        </Card>
 
-  <div class="grid2" style="margin-bottom:14px">
-    <div class="card" style="padding:16px 18px">
-      <div class="pillar" style="border-color:var(--accent)">
-        <div class="num txt-accent">01</div>
-        <div class="title">Orchestra como Sistema Nervioso</div>
-        <div class="desc">Todo el trabajo entra, se clasifica, se prioriza y se asigna centralmente. De emails y chats a tickets inteligentes con políticas de prioridad.</div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:22}}>
+          <Card>
+            <div style={{fontSize:10.5,fontWeight:600,color:C.rose,textTransform:"uppercase",letterSpacing:"0.04em",marginBottom:6}}>❌ Hoy: Modelo Funcional</div>
+            <div style={{fontSize:12,color:C.muted,lineHeight:1.65}}>8 equipos en silos deciden sus propias prioridades. Trabajo asignado por managers y canales informales. Sin datos de volumen/tiempo. La IA es una herramienta puntual.</div>
+          </Card>
+          <Card>
+            <div style={{fontSize:10.5,fontWeight:600,color:C.green,textTransform:"uppercase",letterSpacing:"0.04em",marginBottom:6}}>✓ Objetivo: Modelo Agéntico</div>
+            <div style={{fontSize:12,color:C.muted,lineHeight:1.65}}>Un AI Orchestra asigna todo como tickets priorizados. Los equipos ejecutan en orden. El sistema mide cada tarea. Esos datos determinan qué capacidad humana se convierte en la próxima AI Agent Tool.</div>
+          </Card>
+        </div>
+
+        <STitle icon="◇" t="Los 5 Pilares del Nuevo Modelo"/>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:12}}>
+          {[
+            {n:"01",t:"Orchestra como Sistema Nervioso",d:"Todo el trabajo entra, se clasifica, se prioriza y se asigna centralmente. De emails y chats a tickets con políticas de prioridad.",c:C.accent},
+            {n:"02",t:"Humanos como Pools de Capacidad",d:"Los equipos no eligen qué hacer — ejecutan la cola priorizada. Su valor se mide por throughput, calidad y revenue.",c:C.cyan},
+            {n:"03",t:"Datos como Motor del Roadmap",d:"El Orchestra mide volumen, tiempo y complejidad por tarea. Esos datos deciden qué capacidad humana se convierte en la próxima AI Tool.",c:C.green},
+            {n:"04",t:"Transferencia Progresiva a IA",d:"Cada AI Agent Tool replica una capacidad humana. Se empieza por las de mayor volumen y viabilidad. A medida que absorben carga, el headcount se ajusta.",c:C.amber},
+          ].map((p,i)=>(
+            <Card key={i} style={{borderLeft:`3px solid ${p.c}`,padding:"16px 18px"}}>
+              <div style={{fontSize:17,fontWeight:700,color:p.c,lineHeight:1}}>{p.n}</div>
+              <div style={{fontSize:12.5,fontWeight:600,color:C.text,marginTop:2}}>{p.t}</div>
+              <div style={{fontSize:11.5,color:C.muted,marginTop:4,lineHeight:1.55}}>{p.d}</div>
+            </Card>
+          ))}
+        </div>
+        <Card style={{borderLeft:`3px solid ${C.rose}`,padding:"16px 18px",marginBottom:16}}>
+          <div style={{fontSize:17,fontWeight:700,color:C.rose,lineHeight:1}}>05</div>
+          <div style={{fontSize:12.5,fontWeight:600,color:C.text,marginTop:2}}>El Humano Define el Roadmap de la IA</div>
+          <div style={{fontSize:11.5,color:C.muted,marginTop:4,lineHeight:1.55}}>Las capacidades que hoy ejecutan los humanos son el catálogo de futuras AI Tools. Cada tarea documentada por el Orchestra es una tool potencial. El volumen y la viabilidad determinan el orden. El humano no compite con la IA — la entrena y la precede.</div>
+        </Card>
+
+        <Card accent>
+          <div style={{fontSize:10.5,fontWeight:600,color:C.accent,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:10}}>El Ciclo Virtuoso</div>
+          <div style={{display:"flex",alignItems:"center",gap:5,flexWrap:"wrap",justifyContent:"center",padding:"8px 0"}}>
+            {["Orchestra asigna","Humanos ejecutan","Orchestra mide","Capacidad identificada","AI Tool la replica","Tool absorbe carga","Headcount se ajusta"].map((s,i)=>(
+              <span key={i} style={{display:"flex",alignItems:"center",gap:5}}>
+                <span style={{background:i===6?C.greenS:C.accentS,color:i===6?C.green:C.accent,padding:"4px 10px",borderRadius:6,fontWeight:500,fontSize:10.5}}>{s}</span>
+                {i<6&&<span style={{color:C.dim,fontSize:11}}>→</span>}
+              </span>
+            ))}
+            <span style={{color:C.dim,fontSize:11}}>↻</span>
+          </div>
+        </Card>
+      </div>)}
+
+      {/* ═══ ROADMAP ═══ */}
+      {tab==="roadmap"&&(<div>
+        <STitle icon="◆" t="Roadmap de Transición" sub="Q2: Establecer el sistema — Q3+: Transferir capacidades humanas a AI Tools"/>
+        <div style={{display:"flex",gap:12,marginBottom:20,flexWrap:"wrap"}}>
+          {[{v:"90",l:"Días hasta Go-Live",c:C.accent},{v:"~200",l:"Personas",c:C.text},{v:"4",l:"Fases Q2",c:C.cyan},{v:"Q3+",l:"AI Tools escalan",c:C.green}].map((k,i)=>(
+            <div key={i} style={{textAlign:"center",flex:1,minWidth:90,background:C.card,border:`1px solid ${C.border}`,borderRadius:10,padding:"14px 8px"}}>
+              <div style={{fontSize:26,fontWeight:700,color:k.c,lineHeight:1}}>{k.v}</div>
+              <div style={{fontSize:10,color:C.muted,marginTop:4,textTransform:"uppercase",letterSpacing:"0.04em"}}>{k.l}</div>
+            </div>
+          ))}
+        </div>
+
+        <Phase phase="Fase 0" title="Arquitectura del Sistema + Baseline" date="Abr 1–20" color={C.accent} colorS={C.accentS} items={[
+          "Documentar cada proceso AS IS como tipo de ticket — este es el <strong style='color:#e2e2e8'>catálogo de capacidades humanas actuales</strong>",
+          "Definir taxonomía de eventos y políticas: P0 Firma memorias → P1 Entrega proyectos → P2 Satisfacción → P3 Compliance Red.es → P4 Operativa",
+          "Capturar baseline: volúmenes por tipo, tiempos, NPS, memorias en pipeline",
+          "Seleccionar tecnología Orchestra — decisión requerida el 20 de abril",
+          "Comunicación a liderazgo: cambio de modelo operativo, no una reestructuración"
+        ]}/>
+
+        <Phase phase="Fase 1" title="MVP Orchestra + Consolidación Front" date="Abr 20–May 15" color={C.cyan} colorS={C.cyanS} items={[
+          "Lanzar Orchestra como ticketing con reglas deterministas (colas P0→P4) — no requiere IA aún",
+          "Front trabaja por cola de tickets. No eligen qué hacer — ejecutan en orden de prioridad",
+          "Fusión Support + Satisfaction → Team Front-Support. Satisfaction se convierte en triggers del Orchestra",
+          "CS → CS Middle (operativo) + CS 360 (estratégico). Orchestra enruta por complejidad y valor",
+          "Front Tramitación se disuelve: atención → Front-Support, admin → Back Tramitación (como tickets)",
+          "Instrumentación: cada ticket registra tipo, tiempo, ejecutor — datos para roadmap AI Tools"
+        ]}/>
+
+        <Phase phase="Fase 2" title="Back al Orchestra + Sistema Completo" date="May 15–Jun 7" color={C.green} colorS={C.greenS} items={[
+          "Back Tramitación conectado al Orchestra (equipo intacto — protege KPI memorias). Solo cambia la fuente del trabajo",
+          "Helpdesk → Back PC · Logística: renombrado, scope definido, conectado a cola",
+          "Producción → 4 verticales (Web, RRSS, SEO, FRA) con cola propia del Orchestra",
+          "<strong style='color:#e2e2e8'>Toda la empresa trabaja por tickets.</strong> El catálogo completo de capacidades humanas está siendo medido"
+        ]}/>
+
+        <Phase phase="Fase 3" title="Go-Live + Primer Informe de Capacidades" date="Jun 7–30" color={C.amber} colorS={C.amberS} items={[
+          "Go-Live oficial: nuevo organigrama, nuevos leads, flujos AS IS desactivados",
+          "2 semanas de estabilización con dailys entre leads",
+          "Validación KPIs: NPS y memorias vs. baseline",
+          "<strong style='color:#e2e2e8'>30 junio — Entregable clave:</strong> Primer informe del Orchestra con ranking de capacidades humanas por volumen, tiempo y viabilidad. Este informe es el roadmap de AI Agent Tools"
+        ]}/>
+
+        <Card style={{borderLeft:`3px solid ${C.green}`,marginTop:16}}>
+          <div style={{fontSize:10.5,fontWeight:600,color:C.green,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:10}}>Q3–Q4: Transferencia Progresiva de Capacidades a IA</div>
+          <p style={{fontSize:12.5,color:C.muted,lineHeight:1.7,marginBottom:10}}>
+            <strong style={{color:C.text}}>Q3 (Jul–Sep):</strong> Los datos del Orchestra priorizan las primeras capacidades a replicar como AI Tools. Criterio: volumen × viabilidad × impacto en headcount. Cada tool se valida midiendo absorción real. Front se evalúa por revenue — Q3 es período de gracia.
+          </p>
+          <p style={{fontSize:12.5,color:C.muted,lineHeight:1.7,margin:0}}>
+            <strong style={{color:C.text}}>Q4 (Oct–Dic):</strong> Orchestra evoluciona a LLM. Recomienda activamente la próxima capacidad a automatizar. Primera ronda de ajuste de headcount con datos concretos. Si KD se reactiva, el Orchestra auto-ajusta sin contratar.
+          </p>
+        </Card>
+      </div>)}
+
+      {/* ═══ MAPPING ═══ */}
+      {tab==="mapping"&&(<div>
+        <STitle icon="◆" t="Mapping Organizacional" sub="De 8 equipos funcionales a 6 pools de capacidad gobernados por el Orchestra"/>
+        <Card>
+          <div style={{display:"grid",gridTemplateColumns:"1.2fr 0.3fr 1.2fr 1.6fr",gap:8,paddingBottom:6,borderBottom:`1px solid ${C.border}`,marginBottom:4,fontSize:9.5,fontWeight:600,color:C.dim,textTransform:"uppercase"}}>
+            <span>AS IS</span><span></span><span>TO BE</span><span>Relación con Orchestra</span>
+          </div>
+          {[
+            {f:"Support",t:"Front-Support",n:"Recibe tickets del Orchestra vía AI Agent Support"},
+            {f:"Satisfaction",t:"Absorbido",n:"Se convierte en triggers automáticos que generan tickets"},
+            {f:"CS",t:"CS Middle + CS 360",n:"Orchestra enruta por complejidad y valor"},
+            {f:"Front Tramitación",t:"Disuelto",n:"Atención → Front-Support / Admin → Back Tram."},
+            {f:"Back Tramitación",t:"Back Tramitación",n:"Intacto. Recibe tickets P0 y P3"},
+            {f:"Helpdesk",t:"Back PC · Logística",n:"Renombrado. Tickets de incidencias y envíos"},
+            {f:"Producción",t:"Back Producción ×4",n:"Web · RRSS · SEO · FRA con cola propia"},
+          ].map((r,i)=>(
+            <div key={i} style={{display:"grid",gridTemplateColumns:"1.2fr 0.3fr 1.2fr 1.6fr",gap:8,padding:"9px 0",borderBottom:i<6?`1px solid ${C.border}`:"none",fontSize:12,alignItems:"center"}}>
+              <span style={{color:C.rose,fontWeight:500}}>{r.f}</span>
+              <span style={{color:C.dim,textAlign:"center"}}>→</span>
+              <span style={{color:C.green,fontWeight:500}}>{r.t}</span>
+              <span style={{color:C.muted,fontSize:11}}>{r.n}</span>
+            </div>
+          ))}
+        </Card>
+
+        <Card style={{marginTop:14}}>
+          <div style={{fontSize:10.5,fontWeight:600,color:C.accent,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:14}}>Cambio Fundamental en la Lógica de Trabajo</div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
+            <div>
+              <div style={{fontSize:10.5,fontWeight:600,color:C.rose,marginBottom:6}}>ANTES (Funcional)</div>
+              <div style={{fontSize:12,color:C.muted,lineHeight:1.65}}>Manager asigna → Equipo decide prioridad → Sin datos → Decisiones por intuición → IA puntual → Estructura estática</div>
+            </div>
+            <div>
+              <div style={{fontSize:10.5,fontWeight:600,color:C.green,marginBottom:6}}>DESPUÉS (Agéntico)</div>
+              <div style={{fontSize:12,color:C.muted,lineHeight:1.65}}>Orchestra genera ticket → Prioridad por política → Humano ejecuta → Todo se mide → Datos definen próxima AI Tool → Tool absorbe → Estructura se adapta</div>
+            </div>
+          </div>
+        </Card>
+
+        <Card accent style={{marginTop:14}}>
+          <div style={{fontSize:10.5,fontWeight:600,color:C.accent,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:8}}>Principio Clave</div>
+          <p style={{fontSize:13,lineHeight:1.7,color:C.muted,margin:0}}>
+            Cada capacidad humana documentada en el Orchestra es una <strong style={{color:C.text}}>AI Agent Tool en potencia</strong>. El catálogo de lo que hacen los humanos hoy es el roadmap de la IA de mañana.
+          </p>
+        </Card>
+      </div>)}
+
+      {/* ═══ FINANCIAL ═══ */}
+      {tab==="financial"&&(<div>
+        <STitle icon="◆" t="Modelo de Impacto" sub="Establecer sistema → Medir capacidades → Transferir a IA → Ajustar"/>
+        <Card style={{overflowX:"auto"}}>
+          <div style={{display:"grid",gridTemplateColumns:"1.3fr 1fr 1fr 1fr",minWidth:500,fontSize:11.5}}>
+            {["Métrica","Q2 · Sistema","Q3 · Primeras Tools","Q4 · Escalar"].map((h,i)=>(
+              <div key={i} style={{padding:"9px 8px",borderBottom:`1px solid ${C.border}`,fontSize:9.5,fontWeight:600,color:i===0?C.dim:C.accent,textTransform:"uppercase",textAlign:i===0?"left":"center"}}>{h}</div>
+            ))}
+            {[
+              ["Headcount Ops","~200 (estable)","~190–195","~170–180"],
+              ["AI Agent Tools","0 (Orchestra MVP)","2–3","5–7"],
+              ["% Tickets auto-resueltos","~15%","~25–30%","~40–50%"],
+              ["Capacidades mapeadas","Catálogo completo","Top 10 priorizadas","5–7 en IA"],
+              ["Madurez Orchestra","Reglas + colas","Reglas + dashboard","LLM dinámico"],
+              ["Revenue por front","Sin medición","En medición","Eval. formal"],
+            ].map((row,i)=>(
+              row.map((cell,j)=>(
+                <div key={`${i}-${j}`} style={{padding:"9px 8px",borderBottom:i<5?`1px solid ${C.border}`:"none",color:j===0?C.text:C.muted,fontWeight:j===0?500:400,textAlign:j===0?"left":"center",fontSize:12}}>{cell}</div>
+              ))
+            ))}
+          </div>
+        </Card>
+        <Card style={{borderLeft:`3px solid ${C.amber}`,marginTop:14}}>
+          <div style={{fontSize:10.5,fontWeight:600,color:C.amber,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:6}}>Nota</div>
+          <p style={{fontSize:12,color:C.muted,lineHeight:1.65,margin:0}}>
+            Reducciones basadas en datos validados de absorción por AI Tool — no estimaciones. <strong style={{color:C.text}}>El dato guía el desescalado. Cada capacidad se transfiere a IA solo cuando los datos demuestran viabilidad e impacto medible.</strong>
+          </p>
+        </Card>
+      </div>)}
+
+      {/* ═══ RISKS ═══ */}
+      {tab==="risks"&&(<div>
+        <STitle icon="◆" t="Matriz de Riesgos" sub="Riesgos identificados con mitigaciones concretas"/>
+        <Card style={{overflowX:"auto"}}>
+          <div style={{minWidth:500}}>
+            <div style={{display:"grid",gridTemplateColumns:"1.5fr 0.5fr 0.5fr 2fr",gap:8,paddingBottom:6,borderBottom:`1px solid ${C.border}`,marginBottom:4,fontSize:9.5,fontWeight:600,color:C.dim,textTransform:"uppercase"}}>
+              <span>Riesgo</span><span>Impacto</span><span>Prob.</span><span>Mitigación</span>
+            </div>
+            {[
+              {r:"Orchestra MVP no listo",i:"Alto",ic:C.amber,p:"Medio",pc:C.amber,m:"Arrancar con colas priorizadas en ClickUp/HubSpot. Sin dev custom."},
+              {r:"Caída firma de memorias",i:"Crítico",ic:C.rose,p:"Bajo",pc:C.green,m:"Back Tramitación intacto en Q2. Solo cambia fuente del trabajo."},
+              {r:"Caída de NPS",i:"Alto",ic:C.amber,p:"Medio",pc:C.amber,m:"CS 360 operativo desde día 1. Tickets satisfacción siempre ≥ P2."},
+              {r:"Datos insuficientes en junio",i:"Medio",ic:C.amber,p:"Medio",pc:C.amber,m:"Instrumentación desde día 1. Si falta data, se extiende a julio."},
+              {r:"Resistencia a cola de tickets",i:"Medio",ic:C.amber,p:"Medio",pc:C.amber,m:"Elimina ambigüedad, no autonomía. Evaluación más justa."},
+              {r:"Reactivación KD anticipada",i:"Alto",ic:C.amber,p:"Medio",pc:C.amber,m:"Orchestra auto-ajusta (KD → P0). Absorbe sin contratar."},
+            ].map((rk,i)=>(
+              <div key={i} style={{display:"grid",gridTemplateColumns:"1.5fr 0.5fr 0.5fr 2fr",gap:8,padding:"10px 0",borderBottom:i<5?`1px solid ${C.border}`:"none",fontSize:12,alignItems:"start"}}>
+                <span style={{color:C.text,fontWeight:500}}>{rk.r}</span>
+                <Badge color={rk.ic} bg={rk.ic===C.rose?C.roseS:rk.ic===C.green?C.greenS:C.amberS}>{rk.i}</Badge>
+                <Badge color={rk.pc} bg={rk.pc===C.green?C.greenS:C.amberS}>{rk.p}</Badge>
+                <span style={{color:C.muted}}>{rk.m}</span>
+              </div>
+            ))}
+          </div>
+        </Card>
+      </div>)}
+
+      {/* ═══ DECISIONS ═══ */}
+      {tab==="decisions"&&(<div>
+        <STitle icon="◆" t="Decisiones Requeridas" sub="4 decisiones del board para desbloquear el timeline"/>
+        {[
+          {n:1,t:"Tecnología del Orchestra",dl:"20 Abr",rec:"ClickUp + HubSpot + automatización (n8n/Make) como MVP. Sin dev custom en Q2. Evolución a LLM en Q4.",c:C.rose},
+          {n:2,t:"Owner del Orchestra",dl:"15 Abr",rec:"Nombrar un perfil Operations/Product como dueño único del sistema, taxonomía y políticas. Es el architect del nuevo modelo.",c:C.amber},
+          {n:3,t:"Budget para automatización",dl:"20 Abr",rec:"Aprobar presupuesto para middleware (n8n/Make) y API LLM para Q3. Sin esto, el Orchestra no puede escalar la transferencia de capacidades.",c:C.cyan},
+          {n:4,t:"Modelo revenue para Front",dl:"15 May",rec:"Definir targets upsell/cross-sell que justifican una posición front. Se comunica en Q2, se mide en Q3, se evalúa a cierre de Q3.",c:C.green},
+        ].map((d,i)=>(
+          <div key={i} style={{borderLeft:`3px solid ${d.c}`,padding:"16px 18px",background:C.card,borderRadius:"0 10px 10px 0",marginBottom:12,border:`1px solid ${C.border}`,borderLeftColor:d.c,borderLeftWidth:3}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8,flexWrap:"wrap",gap:8}}>
+              <div style={{display:"flex",alignItems:"center",gap:8}}>
+                <span style={{fontSize:19,fontWeight:700,color:d.c}}>#{d.n}</span>
+                <span style={{fontSize:13.5,fontWeight:600}}>{d.t}</span>
+              </div>
+              <Badge color={C.rose} bg={C.roseS}>Deadline: {d.dl}</Badge>
+            </div>
+            <div style={{fontSize:12,color:C.muted,lineHeight:1.6}}>
+              <strong style={{color:C.text}}>Recomendación:</strong> {d.rec}
+            </div>
+          </div>
+        ))}
+
+        <Card accent style={{marginTop:18}}>
+          <div style={{fontSize:10.5,fontWeight:600,color:C.accent,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:10}}>Hitos Clave</div>
+          {[
+            {d:"20 Abr",m:"Taxonomía + políticas + tech seleccionada",h:false},
+            {d:"30 Abr",m:"Orchestra MVP operativo para front",h:false},
+            {d:"15 May",m:"Front reorganizado y trabajando por tickets",h:false},
+            {d:"7 Jun",m:"Back reorganizado — toda la empresa en Orchestra",h:false},
+            {d:"30 Jun",m:"GO-LIVE + primer informe de capacidades ✓",h:true},
+            {d:"31 Jul",m:"Primera AI Agent Tool en producción",h:false},
+            {d:"30 Sep",m:"Evaluación Q3: absorción tools + revenue front",h:false},
+            {d:"31 Dic",m:"Orchestra con LLM + 5–7 tools + headcount ajustado",h:false},
+          ].map((ms,i)=>(
+            <div key={i} style={{display:"flex",gap:12,padding:"6px 0",borderBottom:i<7?`1px solid rgba(99,102,241,0.08)`:"none",fontSize:12,alignItems:"center"}}>
+              <span style={{color:ms.h?C.green:C.accent,fontWeight:600,minWidth:48,fontSize:11}}>{ms.d}</span>
+              <span style={{color:ms.h?C.green:C.muted,fontWeight:ms.h?600:400}}>{ms.m}</span>
+            </div>
+          ))}
+        </Card>
+      </div>)}
+
       </div>
     </div>
-    <div class="card" style="padding:16px 18px">
-      <div class="pillar" style="border-color:var(--cyan)">
-        <div class="num txt-cyan">02</div>
-        <div class="title">Humanos como Pools de Capacidad</div>
-        <div class="desc">Los equipos no eligen qué hacer — ejecutan la cola priorizada. Su valor se mide por throughput, calidad y revenue generado.</div>
-      </div>
-    </div>
-    <div class="card" style="padding:16px 18px">
-      <div class="pillar" style="border-color:var(--green)">
-        <div class="num txt-green">03</div>
-        <div class="title">Datos como Motor del Roadmap</div>
-        <div class="desc">El Orchestra mide volumen, tiempo y complejidad por tipo de tarea. Esos datos deciden qué capacidad humana se convierte en la próxima AI Agent Tool.</div>
-      </div>
-    </div>
-    <div class="card" style="padding:16px 18px">
-      <div class="pillar" style="border-color:var(--amber)">
-        <div class="num txt-amber">04</div>
-        <div class="title">Transferencia Progresiva a IA</div>
-        <div class="desc">Cada AI Agent Tool replica una capacidad humana. Se empieza por las de mayor volumen y viabilidad. A medida que las tools absorben carga, el headcount se ajusta.</div>
-      </div>
-    </div>
-  </div>
-  <div class="card" style="padding:16px 18px">
-    <div class="pillar" style="border-color:var(--rose)">
-      <div class="num txt-rose">05</div>
-      <div class="title">El Humano Define el Roadmap de la IA</div>
-      <div class="desc">Las capacidades que hoy ejecutan los humanos son el catálogo de futuras AI Tools. Cada tarea humana documentada por el Orchestra es una tool potencial. El volumen y la viabilidad determinan el orden. El humano no compite con la IA — la entrena y la precede.</div>
-    </div>
-  </div>
-
-  <div class="card card-accent" style="margin-top:16px">
-    <div style="font-size:10.5px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px">El Ciclo Virtuoso</div>
-    <div class="cycle-flow">
-      <span class="cycle-step">Orchestra asigna</span><span class="cycle-arr">→</span>
-      <span class="cycle-step">Humanos ejecutan</span><span class="cycle-arr">→</span>
-      <span class="cycle-step">Orchestra mide</span><span class="cycle-arr">→</span>
-      <span class="cycle-step">Capacidad + volumen identificados</span><span class="cycle-arr">→</span>
-      <span class="cycle-step">AI Tool replica la capacidad</span><span class="cycle-arr">→</span>
-      <span class="cycle-step">Tool absorbe carga</span><span class="cycle-arr">→</span>
-      <span class="cycle-step">Headcount se ajusta</span><span class="cycle-arr">→</span>
-      <span class="cycle-step" style="background:var(--greenSoft);color:var(--green)">↻ Siguiente capacidad</span>
-    </div>
-  </div>
-</div>
-
-<!-- ═══ ROADMAP ═══ -->
-<div class="tab-panel" id="panel-roadmap">
-  <div class="section-title">
-    <h2><span>◆</span> Roadmap de Transición</h2>
-    <p>Q2: Establecer el sistema — Q3+: Transferir capacidades humanas a AI Tools progresivamente</p>
-  </div>
-
-  <div class="kpis">
-    <div class="kpi"><div class="val txt-accent">90</div><div class="lbl">Días hasta Go-Live</div></div>
-    <div class="kpi"><div class="val">~200</div><div class="lbl">Personas</div></div>
-    <div class="kpi"><div class="val txt-cyan">4</div><div class="lbl">Fases Q2</div></div>
-    <div class="kpi"><div class="val txt-green">Q3+</div><div class="lbl">AI Tools escalan</div></div>
-  </div>
-
-  <div class="phase" onclick="togglePhase(this)">
-    <div class="phase-header" style="border-left:3px solid var(--accent)">
-      <div class="phase-left">
-        <span class="badge" style="color:var(--accent);background:var(--accentSoft)">Fase 0</span>
-        <span style="font-size:13px;font-weight:500">Arquitectura del Sistema + Baseline</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:10px">
-        <span style="font-size:11px;color:var(--muted)">Abr 1–20</span>
-        <span class="phase-arrow">▼</span>
-      </div>
-    </div>
-    <div class="phase-body">
-      <div class="phase-item"><span class="dot txt-accent">→</span>Documentar cada proceso AS IS como un tipo de ticket con campos estandarizados — esto es el catálogo de capacidades humanas actuales</div>
-      <div class="phase-item"><span class="dot txt-accent">→</span>Definir taxonomía de eventos y políticas de priorización: P0 Firma memorias → P1 Entrega proyectos → P2 Satisfacción cliente → P3 Compliance Red.es → P4 Operativa</div>
-      <div class="phase-item"><span class="dot txt-accent">→</span>Capturar baseline: volúmenes por tipo, tiempos, NPS, memorias en pipeline</div>
-      <div class="phase-item"><span class="dot txt-accent">→</span>Seleccionar tecnología Orchestra — decisión requerida el 20 de abril</div>
-      <div class="phase-item"><span class="dot txt-accent">→</span>Comunicación a liderazgo: esto es un cambio de modelo operativo, no una reestructuración</div>
-    </div>
-  </div>
-
-  <div class="phase" onclick="togglePhase(this)">
-    <div class="phase-header" style="border-left:3px solid var(--cyan)">
-      <div class="phase-left">
-        <span class="badge" style="color:var(--cyan);background:var(--cyanSoft)">Fase 1</span>
-        <span style="font-size:13px;font-weight:500">MVP Orchestra + Consolidación Front</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:10px">
-        <span style="font-size:11px;color:var(--muted)">Abr 20–May 15</span>
-        <span class="phase-arrow">▼</span>
-      </div>
-    </div>
-    <div class="phase-body">
-      <div class="phase-item"><span class="dot txt-cyan">→</span>Lanzar Orchestra como sistema de ticketing con reglas deterministas (colas priorizadas P0→P4) — no requiere IA aún</div>
-      <div class="phase-item"><span class="dot txt-cyan">→</span>Todos los front empiezan a trabajar por cola de tickets. No eligen qué hacer — ejecutan en orden de prioridad</div>
-      <div class="phase-item"><span class="dot txt-cyan">→</span>Fusión Support + Satisfaction → Team Front-Support. Satisfaction se convierte en triggers automáticos del Orchestra</div>
-      <div class="phase-item"><span class="dot txt-cyan">→</span>CS → CS Middle (operativo) + CS 360 (estratégico/retención). El Orchestra enruta por complejidad y valor</div>
-      <div class="phase-item"><span class="dot txt-cyan">→</span>Front Tramitación se disuelve: atención → Front-Support, admin → Back Tramitación (como tickets)</div>
-      <div class="phase-item"><span class="dot txt-cyan">→</span>Instrumentación completa: cada ticket registra tipo, tiempo, ejecutor — datos para el roadmap de AI Tools</div>
-    </div>
-  </div>
-
-  <div class="phase" onclick="togglePhase(this)">
-    <div class="phase-header" style="border-left:3px solid var(--green)">
-      <div class="phase-left">
-        <span class="badge" style="color:var(--green);background:var(--greenSoft)">Fase 2</span>
-        <span style="font-size:13px;font-weight:500">Back al Orchestra + Sistema Completo</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:10px">
-        <span style="font-size:11px;color:var(--muted)">May 15–Jun 7</span>
-        <span class="phase-arrow">▼</span>
-      </div>
-    </div>
-    <div class="phase-body">
-      <div class="phase-item"><span class="dot txt-green">→</span>Back Tramitación se conecta al Orchestra. Equipo intacto (protege KPI memorias) — solo cambia de dónde recibe el trabajo</div>
-      <div class="phase-item"><span class="dot txt-green">→</span>Helpdesk → Back PC · Logística: renombrado, scope definido, conectado a su cola</div>
-      <div class="phase-item"><span class="dot txt-green">→</span>Producción → 4 verticales (Web, RRSS, SEO, FRA) cada una con cola propia del Orchestra</div>
-      <div class="phase-item"><span class="dot txt-green">→</span>Toda la empresa trabaja por tickets del Orchestra. El catálogo completo de capacidades humanas está siendo medido</div>
-    </div>
-  </div>
-
-  <div class="phase" onclick="togglePhase(this)">
-    <div class="phase-header" style="border-left:3px solid var(--amber)">
-      <div class="phase-left">
-        <span class="badge" style="color:var(--amber);background:var(--amberSoft)">Fase 3</span>
-        <span style="font-size:13px;font-weight:500">Go-Live + Primer Informe de Capacidades</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:10px">
-        <span style="font-size:11px;color:var(--muted)">Jun 7–30</span>
-        <span class="phase-arrow">▼</span>
-      </div>
-    </div>
-    <div class="phase-body">
-      <div class="phase-item"><span class="dot txt-amber">→</span>Go-Live oficial: nuevo organigrama, nuevos leads, flujos AS IS desactivados</div>
-      <div class="phase-item"><span class="dot txt-amber">→</span>2 semanas de estabilización con dailys entre leads</div>
-      <div class="phase-item"><span class="dot txt-amber">→</span>Validación KPIs: NPS y memorias en pipeline vs. baseline</div>
-      <div class="phase-item"><span class="dot txt-amber">→</span><strong style="color:#e2e2e8">30 junio — Entregable clave:</strong> Primer informe del Orchestra con el ranking de capacidades humanas por volumen, tiempo y viabilidad de automatización. Este informe es el roadmap de AI Agent Tools</div>
-    </div>
-  </div>
-
-  <div class="card" style="border-left:3px solid var(--green);margin-top:16px">
-    <div style="font-size:10.5px;font-weight:600;color:var(--green);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px">Q3–Q4: Transferencia Progresiva de Capacidades a IA</div>
-    <p style="font-size:12.5px;color:var(--muted);line-height:1.7;margin-bottom:10px">
-      <span class="highlight">Q3 (Jul–Sep):</span> Los datos del Orchestra determinan las primeras capacidades humanas a replicar como AI Agent Tools. Criterio de priorización: volumen de tickets × viabilidad técnica × impacto en headcount. Cada tool se valida midiendo cuánta carga humana absorbe realmente. Front se evalúa por revenue (upsell/cross-sell) — Q3 es período de gracia.
-    </p>
-    <p style="font-size:12.5px;color:var(--muted);line-height:1.7;margin-bottom:0">
-      <span class="highlight">Q4 (Oct–Dic):</span> Orchestra evoluciona de reglas a LLM (priorización dinámica por contexto). El Orchestra recomienda activamente la próxima capacidad a automatizar. Primera ronda formal de ajuste de headcount basada en datos de absorción. Si KD se reactiva, el Orchestra auto-ajusta prioridades sin necesidad de contratar.
-    </p>
-  </div>
-</div>
-
-<!-- ═══ MAPPING ═══ -->
-<div class="tab-panel" id="panel-mapping">
-  <div class="section-title">
-    <h2><span>◆</span> Mapping Organizacional</h2>
-    <p>De 8 equipos funcionales a 6 pools de capacidad gobernados por el Orchestra</p>
-  </div>
-
-  <div class="card">
-    <div class="map-row map-head">
-      <span>AS IS</span><span></span><span>TO BE</span><span>Relación con Orchestra</span>
-    </div>
-    <div class="map-row"><span class="txt-rose" style="font-weight:500">Support</span><span class="txt-dim" style="text-align:center">→</span><span class="txt-green" style="font-weight:500">Front-Support</span><span class="txt-muted" style="font-size:11px">Recibe tickets del Orchestra vía AI Agent Support</span></div>
-    <div class="map-row"><span class="txt-rose" style="font-weight:500">Satisfaction</span><span class="txt-dim" style="text-align:center">→</span><span class="txt-green" style="font-weight:500">Absorbido</span><span class="txt-muted" style="font-size:11px">Se convierte en triggers automáticos que generan tickets</span></div>
-    <div class="map-row"><span class="txt-rose" style="font-weight:500">CS</span><span class="txt-dim" style="text-align:center">→</span><span class="txt-green" style="font-weight:500">CS Middle + CS 360</span><span class="txt-muted" style="font-size:11px">Orchestra enruta por complejidad y valor cliente</span></div>
-    <div class="map-row"><span class="txt-rose" style="font-weight:500">Front Tramitación</span><span class="txt-dim" style="text-align:center">→</span><span class="txt-green" style="font-weight:500">Disuelto</span><span class="txt-muted" style="font-size:11px">Atención → Front-Support / Admin → Back Tram.</span></div>
-    <div class="map-row"><span class="txt-rose" style="font-weight:500">Back Tramitación</span><span class="txt-dim" style="text-align:center">→</span><span class="txt-green" style="font-weight:500">Back Tramitación</span><span class="txt-muted" style="font-size:11px">Intacto. Recibe tickets P0 (memorias) y P3 (compliance)</span></div>
-    <div class="map-row"><span class="txt-rose" style="font-weight:500">Helpdesk</span><span class="txt-dim" style="text-align:center">→</span><span class="txt-green" style="font-weight:500">Back PC · Logística</span><span class="txt-muted" style="font-size:11px">Renombrado. Tickets de incidencias y envíos</span></div>
-    <div class="map-row" style="border-bottom:none"><span class="txt-rose" style="font-weight:500">Producción</span><span class="txt-dim" style="text-align:center">→</span><span class="txt-green" style="font-weight:500">Back Producción ×4</span><span class="txt-muted" style="font-size:11px">Web · RRSS · SEO · FRA — cada vertical con cola propia</span></div>
-  </div>
-
-  <div class="card" style="margin-top:14px">
-    <div style="font-size:10.5px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:14px">Cambio Fundamental en la Lógica de Trabajo</div>
-    <div class="grid2">
-      <div>
-        <div class="compare-label txt-rose">Antes (Funcional)</div>
-        <div class="compare-text">Manager asigna → Equipo decide prioridad → Sin datos de capacidad → Decisiones por intuición → IA como herramienta puntual → Estructura estática</div>
-      </div>
-      <div>
-        <div class="compare-label txt-green">Después (Agéntico)</div>
-        <div class="compare-text">Orchestra genera ticket → Prioridad por política → Humano ejecuta en orden → Todo se mide → Datos definen próxima AI Tool → Tool absorbe capacidad → Estructura se adapta</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="card card-accent" style="margin-top:14px">
-    <div style="font-size:10.5px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">Principio Clave</div>
-    <p style="font-size:13px;line-height:1.7;color:var(--muted)">
-      Cada capacidad humana documentada en el Orchestra es una <span class="highlight">AI Agent Tool en potencia</span>. El catálogo de lo que hacen los humanos hoy es el roadmap de la IA de mañana. El orden lo dictan los datos: volumen, viabilidad, impacto.
-    </p>
-  </div>
-</div>
-
-<!-- ═══ FINANCIAL ═══ -->
-<div class="tab-panel" id="panel-financial">
-  <div class="section-title">
-    <h2><span>◆</span> Modelo de Impacto</h2>
-    <p>Proyecciones basadas en el ciclo: establecer sistema → medir → transferir capacidades → ajustar</p>
-  </div>
-
-  <div class="card" style="overflow-x:auto">
-    <div class="table-grid" style="grid-template-columns:1.3fr 1fr 1fr 1fr;min-width:500px">
-      <div class="cell head">Métrica</div>
-      <div class="cell head" style="text-align:center">Q2 · Sistema</div>
-      <div class="cell head" style="text-align:center">Q3 · Primeras Tools</div>
-      <div class="cell head" style="text-align:center">Q4 · Escalar</div>
-
-      <div class="cell highlight">Headcount Ops</div>
-      <div class="cell txt-muted" style="text-align:center">~200 (estable)</div>
-      <div class="cell txt-muted" style="text-align:center">~190–195</div>
-      <div class="cell txt-muted" style="text-align:center">~170–180</div>
-
-      <div class="cell highlight">AI Agent Tools</div>
-      <div class="cell txt-muted" style="text-align:center">0 (Orchestra MVP)</div>
-      <div class="cell txt-muted" style="text-align:center">2–3</div>
-      <div class="cell txt-muted" style="text-align:center">5–7</div>
-
-      <div class="cell highlight">% Tickets auto-resueltos</div>
-      <div class="cell txt-muted" style="text-align:center">~15%</div>
-      <div class="cell txt-muted" style="text-align:center">~25–30%</div>
-      <div class="cell txt-muted" style="text-align:center">~40–50%</div>
-
-      <div class="cell highlight">Capacidades mapeadas</div>
-      <div class="cell txt-muted" style="text-align:center">Catálogo completo</div>
-      <div class="cell txt-muted" style="text-align:center">Top 10 priorizadas</div>
-      <div class="cell txt-muted" style="text-align:center">5–7 replicadas en IA</div>
-
-      <div class="cell highlight">Madurez Orchestra</div>
-      <div class="cell txt-muted" style="text-align:center">Reglas + colas</div>
-      <div class="cell txt-muted" style="text-align:center">Reglas + dashboard</div>
-      <div class="cell txt-muted" style="text-align:center">LLM dinámico</div>
-
-      <div class="cell highlight" style="border-bottom:none">Revenue por front</div>
-      <div class="cell txt-muted" style="text-align:center;border-bottom:none">Sin medición</div>
-      <div class="cell txt-muted" style="text-align:center;border-bottom:none">En medición</div>
-      <div class="cell txt-muted" style="text-align:center;border-bottom:none">Evaluación formal</div>
-    </div>
-  </div>
-
-  <div class="card" style="margin-top:14px;border-left:3px solid var(--amber)">
-    <div style="font-size:10.5px;font-weight:600;color:var(--amber);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Nota</div>
-    <p style="font-size:12px;color:var(--muted);line-height:1.65">
-      Las proyecciones de headcount son direccionales. Las reducciones reales se basan en datos validados de absorción por AI Tool — no en estimaciones. <span class="highlight">El principio fundamental: el dato guía el desescalado, no la intuición. Cada capacidad humana se transfiere a IA solo cuando los datos demuestran que es viable y el impacto es medible.</span>
-    </p>
-  </div>
-</div>
-
-<!-- ═══ RISKS ═══ -->
-<div class="tab-panel" id="panel-risks">
-  <div class="section-title">
-    <h2><span>◆</span> Matriz de Riesgos</h2>
-    <p>Riesgos identificados con mitigaciones concretas</p>
-  </div>
-
-  <div class="card" style="overflow-x:auto">
-    <div class="risk-row" style="border-bottom:1px solid var(--border);padding-bottom:6px;margin-bottom:4px">
-      <span style="font-size:9.5px;font-weight:600;color:var(--dim);text-transform:uppercase">Riesgo</span>
-      <span style="font-size:9.5px;font-weight:600;color:var(--dim);text-transform:uppercase">Impacto</span>
-      <span style="font-size:9.5px;font-weight:600;color:var(--dim);text-transform:uppercase">Prob.</span>
-      <span style="font-size:9.5px;font-weight:600;color:var(--dim);text-transform:uppercase">Mitigación</span>
-    </div>
-    <div class="risk-row">
-      <span class="highlight">Orchestra MVP no listo a tiempo</span>
-      <span class="badge" style="color:var(--amber);background:var(--amberSoft)">Alto</span>
-      <span class="badge" style="color:var(--amber);background:var(--amberSoft)">Medio</span>
-      <span class="txt-muted">Arrancar con colas priorizadas en ClickUp/HubSpot. No requiere desarrollo custom.</span>
-    </div>
-    <div class="risk-row">
-      <span class="highlight">Caída en firma de memorias</span>
-      <span class="badge" style="color:var(--rose);background:var(--roseSoft)">Crítico</span>
-      <span class="badge" style="color:var(--green);background:var(--greenSoft)">Bajo</span>
-      <span class="txt-muted">Back Tramitación intacto en Q2. Solo cambia la fuente del trabajo.</span>
-    </div>
-    <div class="risk-row">
-      <span class="highlight">Caída de NPS en transición</span>
-      <span class="badge" style="color:var(--amber);background:var(--amberSoft)">Alto</span>
-      <span class="badge" style="color:var(--amber);background:var(--amberSoft)">Medio</span>
-      <span class="txt-muted">CS 360 operativo desde día 1. Tickets de satisfacción siempre ≥ P2.</span>
-    </div>
-    <div class="risk-row">
-      <span class="highlight">Datos insuficientes en junio</span>
-      <span class="badge" style="color:var(--amber);background:var(--amberSoft)">Medio</span>
-      <span class="badge" style="color:var(--amber);background:var(--amberSoft)">Medio</span>
-      <span class="txt-muted">Instrumentación desde día 1. Si falta data, se extiende medición a julio.</span>
-    </div>
-    <div class="risk-row">
-      <span class="highlight">Resistencia a trabajar por cola</span>
-      <span class="badge" style="color:var(--amber);background:var(--amberSoft)">Medio</span>
-      <span class="badge" style="color:var(--amber);background:var(--amberSoft)">Medio</span>
-      <span class="txt-muted">Elimina ambigüedad, no autonomía. Evaluación más justa por throughput.</span>
-    </div>
-    <div class="risk-row" style="border-bottom:none">
-      <span class="highlight">Reactivación KD anticipada</span>
-      <span class="badge" style="color:var(--amber);background:var(--amberSoft)">Alto</span>
-      <span class="badge" style="color:var(--amber);background:var(--amberSoft)">Medio</span>
-      <span class="txt-muted">Orchestra auto-ajusta (tramitación KD → P0). Absorbe pico sin contratar.</span>
-    </div>
-  </div>
-</div>
-
-<!-- ═══ DECISIONS ═══ -->
-<div class="tab-panel" id="panel-decisions">
-  <div class="section-title">
-    <h2><span>◆</span> Decisiones Requeridas</h2>
-    <p>4 decisiones del board necesarias para desbloquear el timeline</p>
-  </div>
-
-  <div class="decision" style="border-left-color:var(--rose)">
-    <div class="top">
-      <div style="display:flex;align-items:center;gap:8px"><span class="num txt-rose">#1</span><span class="dtitle">Tecnología del Orchestra</span></div>
-      <span class="badge" style="color:var(--rose);background:var(--roseSoft)">Deadline: 20 Abr</span>
-    </div>
-    <div class="rec"><span class="highlight">Recomendación:</span> ClickUp + HubSpot + automatización (n8n/Make) como MVP. Sin desarrollo custom en Q2. Evolución a LLM en Q4 cuando los datos de capacidades lo justifiquen.</div>
-  </div>
-
-  <div class="decision" style="border-left-color:var(--amber)">
-    <div class="top">
-      <div style="display:flex;align-items:center;gap:8px"><span class="num txt-amber">#2</span><span class="dtitle">Owner del Orchestra</span></div>
-      <span class="badge" style="color:var(--rose);background:var(--roseSoft)">Deadline: 15 Abr</span>
-    </div>
-    <div class="rec"><span class="highlight">Recomendación:</span> Nombrar un perfil Operations/Product como dueño único del sistema, la taxonomía y las políticas. Esta persona es el architect del nuevo modelo operativo.</div>
-  </div>
-
-  <div class="decision" style="border-left-color:var(--cyan)">
-    <div class="top">
-      <div style="display:flex;align-items:center;gap:8px"><span class="num txt-cyan">#3</span><span class="dtitle">Budget para automatización</span></div>
-      <span class="badge" style="color:var(--rose);background:var(--roseSoft)">Deadline: 20 Abr</span>
-    </div>
-    <div class="rec"><span class="highlight">Recomendación:</span> Aprobar presupuesto para middleware (n8n/Make) y API de LLM para Q3. Sin esto el Orchestra se queda en reglas estáticas y no puede escalar la transferencia de capacidades.</div>
-  </div>
-
-  <div class="decision" style="border-left-color:var(--green)">
-    <div class="top">
-      <div style="display:flex;align-items:center;gap:8px"><span class="num txt-green">#4</span><span class="dtitle">Modelo revenue para Front</span></div>
-      <span class="badge" style="color:var(--amber);background:var(--amberSoft)">Deadline: 15 May</span>
-    </div>
-    <div class="rec"><span class="highlight">Recomendación:</span> Definir targets de upsell/cross-sell que justifican una posición front. Se comunica en Q2, se mide en Q3, se evalúa formalmente a cierre de Q3.</div>
-  </div>
-
-  <div class="card card-accent" style="margin-top:18px">
-    <div style="font-size:10.5px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px">Hitos Clave</div>
-    <div class="milestone"><span class="md">20 Abr</span><span class="txt-muted">Taxonomía + políticas + tech seleccionada</span></div>
-    <div class="milestone"><span class="md">30 Abr</span><span class="txt-muted">Orchestra MVP operativo para front</span></div>
-    <div class="milestone"><span class="md">15 May</span><span class="txt-muted">Front reorganizado y trabajando por tickets</span></div>
-    <div class="milestone"><span class="md">7 Jun</span><span class="txt-muted">Back reorganizado — toda la empresa en Orchestra</span></div>
-    <div class="milestone" style="border-bottom:2px solid rgba(34,197,94,0.3)"><span class="md" style="color:var(--green)">30 Jun</span><span class="highlight" style="color:var(--green)">GO-LIVE + primer informe de capacidades ✓</span></div>
-    <div class="milestone"><span class="md">31 Jul</span><span class="txt-muted">Primera AI Agent Tool en producción</span></div>
-    <div class="milestone"><span class="md">30 Sep</span><span class="txt-muted">Evaluación Q3: absorción tools + revenue front</span></div>
-    <div class="milestone" style="border-bottom:none"><span class="md">31 Dic</span><span class="txt-muted">Orchestra con LLM + 5–7 tools + headcount ajustado</span></div>
-  </div>
-</div>
-
-</div>
-
-<script>
-// Tab navigation
-document.querySelectorAll('.tabs button').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
-  });
-});
-
-// Phase accordion
-function togglePhase(el) {
-  const body = el.querySelector('.phase-body');
-  const arrow = el.querySelector('.phase-arrow');
-  if (body.classList.contains('open')) {
-    body.classList.remove('open');
-    arrow.classList.remove('open');
-  } else {
-    body.classList.add('open');
-    arrow.classList.add('open');
-  }
+  );
 }
-</script>
-</body>
-</html>
